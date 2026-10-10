@@ -609,6 +609,18 @@ function classifyText(
 		// message reclassified from its text alone still retries.
 		if (isCodexSteerRejection({ api, errorMessage })) kinds |= Flag.Transient;
 
+		// Cursor reports temporary upstream connection failures as HTTP 400 rather
+		// than 5xx. Match its specific diagnostic, not all PROVIDER_ERROR responses.
+		if (
+			provider === "cursor" &&
+			statusClean === 400 &&
+			cleanMessage.includes(
+				"Cursor PROVIDER_ERROR: Provider Error: We're having trouble connecting to the model provider. This might be temporary - please try again in a moment.",
+			)
+		) {
+			kinds |= Flag.Transient;
+		}
+
 		// Fireworks mid-generation NaN 400 is a model-side decode fault, not a bad
 		// request; a byte-identical replay succeeds, so treat it as transient.
 		if (statusClean === 400 && GENERATION_NAN_PATTERN.test(cleanMessage)) kinds |= Flag.Transient;
