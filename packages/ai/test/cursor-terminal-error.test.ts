@@ -703,11 +703,11 @@ describe("Cursor terminal lifecycle after turnEnded", () => {
 	);
 
 	it.each([
-		{ isRetryable: false, retriable: false, status: 400 },
+		{ isRetryable: false, retriable: true, status: 400 },
 		{ isRetryable: true, retriable: true, status: 503 },
 		{ isRetryable: undefined, retriable: true, status: 503 },
 	])(
-		"retries ERROR_PROVIDER_ERROR only when Cursor allows it (isRetryable=$isRetryable)",
+		"retries temporary ERROR_PROVIDER_ERROR regardless of Cursor's retry hint (isRetryable=$isRetryable)",
 		async ({ isRetryable, retriable, status }) => {
 			scenario = { kind: "connect-provider-error-after-step", isRetryable };
 			const baseUrl = await startServer();
